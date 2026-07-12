@@ -6,3 +6,5 @@ Pillow==10.2.0
 groq==0.4.2
 waitress==3.0.0
 werkzeug==3.0.1
+httpx>=0.28.1
+groq>=0.13.0
