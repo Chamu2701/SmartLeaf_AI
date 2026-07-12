@@ -3,7 +3,6 @@ Flask-SQLAlchemy==3.1.1
 transformers==4.38.1
 torch==2.2.1 --extra-index-url https://download.pytorch.org/whl/cpu
 Pillow==10.2.0
-groq==0.4.2
 waitress==3.0.0
 werkzeug==3.0.1
 httpx>=0.28.1
