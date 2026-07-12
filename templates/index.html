@@ -1,0 +1,621 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartLeafAI - Unified Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+        
+        body { 
+            background-color: #f2f7f4; 
+            font-family: 'Outfit', 'Segoe UI', system-ui, sans-serif; 
+            color: #2b3a32;
+        }
+        
+        .hero-banner { 
+            background: linear-gradient(135deg, #134e1e, #2e7d32, #1b5e20); 
+            color: white; 
+            padding: 40px 0; 
+            border-radius: 0 0 24px 24px; 
+            margin-bottom: 30px; 
+            text-align: center; 
+            box-shadow: 0 8px 30px rgba(19, 78, 30, 0.15);
+        }
+        .feature-card { 
+            border: 1px solid rgba(0, 0, 0, 0.05); 
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03); 
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.06);
+        }
+        .chat-box { 
+            height: 320px; 
+            overflow-y: auto; 
+            background: #fcfdfc; 
+            border-radius: 14px; 
+            padding: 18px; 
+            border: 1px solid #e1e7e3;
+        }
+        .msg { 
+            margin-bottom: 12px; 
+            padding: 12px 16px; 
+            border-radius: 18px; 
+            max-width: 80%; 
+            font-size: 15px;
+            line-height: 1.5;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+        .msg-bot { 
+            background-color: #eaf7ed; 
+            color: #1b5e20; 
+            align-self: flex-start; 
+            border-bottom-left-radius: 4px;
+            border: 1px solid rgba(46, 125, 50, 0.1);
+        }
+        .msg-user { 
+            background-color: #2e7d32; 
+            color: white; 
+            align-self: flex-end; 
+            margin-left: auto; 
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 4px 10px rgba(46, 125, 50, 0.15);
+        }
+        #cameraView, #photoPreview { 
+            width: 100%; 
+            max-height: 250px; 
+            object-fit: cover; 
+            border-radius: 12px; 
+            display: none; 
+            margin-top: 10px; 
+            background: #000; 
+            border: 2px solid #2e7d32;
+        }
+        
+        /* Premium Authentication Styling */
+        .auth-bg {
+            min-height: calc(100vh - 56px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at 10% 20%, rgba(26, 76, 32, 0.08) 0%, rgba(255, 255, 255, 0) 90.2%),
+                        radial-gradient(circle at 90% 80%, rgba(67, 160, 71, 0.06) 0%, rgba(255, 255, 255, 0) 90%);
+            padding: 40px 20px;
+        }
+        .auth-container {
+            width: 100%;
+            max-width: 440px;
+        }
+        .auth-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: #1b5e20;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+        .auth-subtitle {
+            font-size: 15px;
+            color: #6e7e75;
+            font-weight: 400;
+        }
+        .auth-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 28px;
+            box-shadow: 0 20px 40px rgba(19, 78, 30, 0.06), 0 1px 3px rgba(0, 0, 0, 0.02);
+            padding: 40px 32px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .auth-tabs {
+            display: flex;
+            background: rgba(0, 0, 0, 0.04);
+            border-radius: 16px;
+            padding: 4px;
+            margin-bottom: 30px;
+        }
+        .auth-tab {
+            flex: 1;
+            border: none;
+            background: none;
+            padding: 11px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #64746a;
+            border-radius: 12px;
+            transition: all 0.25s ease;
+        }
+        .auth-tab.active {
+            background: white;
+            color: #1b5e20;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        .auth-input-group {
+            margin-bottom: 22px;
+            text-align: left;
+        }
+        .auth-input-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #4b5a50;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .auth-control {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 14px;
+            border: 1.5px solid #d2ded5;
+            background: white;
+            font-size: 15px;
+            color: #2b3a32;
+            transition: all 0.25s ease;
+        }
+        .auth-control:focus {
+            outline: none;
+            border-color: #2e7d32;
+            box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.12);
+        }
+        .btn-auth-submit {
+            background: linear-gradient(135deg, #1b5e20, #388e3c);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            padding: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            width: 100%;
+            transition: all 0.25s ease;
+            box-shadow: 0 6px 20px rgba(27, 94, 32, 0.15);
+        }
+        .btn-auth-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(27, 94, 32, 0.22);
+            filter: brightness(1.05);
+        }
+        .btn-auth-submit:active {
+            transform: translateY(1px);
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-success" href="/">🌱 SmartLeafAI Unified Portal</a>
+            {% if logged_in %}
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-white opacity-75 small">Welcome, <strong class="text-success">{{ username }}</strong></span>
+                <a href="/logout" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1 fw-semibold">Logout</a>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    {% if not logged_in %}
+    <div class="auth-bg">
+        <div class="auth-container text-center">
+            <div class="mb-4">
+                <h1 class="auth-title">🌱 SmartLeafAI</h1>
+                <p class="auth-subtitle">Your personal botanical health assistant</p>
+            </div>
+            
+            <div class="auth-card">
+                {% if otp_flow %}
+                <!-- OTP Verification Card -->
+                <div class="mb-4 text-start">
+                    <h3 class="fw-bold text-success mb-1">Verify Your Email</h3>
+                    <p class="small text-muted">A 6-digit verification code has been sent to <strong class="text-dark">{{ pending_email }}</strong></p>
+                </div>
+                
+                <form action="/verify_otp" method="post" id="otpForm" class="auth-form text-start">
+                    {% with messages = get_flashed_messages(category_filter=["otp_error"]) %}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-danger p-2 mb-3 rounded-3 small">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    {% with messages = get_flashed_messages(category_filter=["otp_success"]) %}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-success p-2 mb-3 rounded-3 small">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <div class="auth-input-group">
+                        <label for="otp_input">Enter 6-Digit OTP</label>
+                        <input type="text" id="otp_input" name="otp" class="auth-control text-center fs-3 fw-bold" placeholder="••••••" style="letter-spacing: 8px;" required maxlength="6" pattern="\d{6}" autocomplete="one-time-code" autofocus>
+                    </div>
+                    
+                    <button type="submit" class="btn-auth-submit mt-2">Verify & Continue</button>
+                    
+                    <div class="mt-4 d-flex justify-content-between align-items-center">
+                        <a href="/resend_otp" class="small text-success fw-bold text-decoration-none">Resend Code</a>
+                        <a href="/cancel_otp" class="small text-secondary text-decoration-none">Cancel</a>
+                    </div>
+                </form>
+                {% else %}
+                <!-- Normal Sign In / Create Account Tabs -->
+                <div class="auth-tabs">
+                    <button type="button" class="auth-tab {% if active_tab != 'register' %}active{% endif %}" id="loginTabBtn" onclick="switchAuthTab('login')">Sign In</button>
+                    <button type="button" class="auth-tab {% if active_tab == 'register' %}active{% endif %}" id="registerTabBtn" onclick="switchAuthTab('register')">Create Account</button>
+                </div>
+                
+                <!-- Login Form -->
+                <form action="/login" method="post" id="loginForm" class="auth-form {% if active_tab == 'register' %}d-none{% endif %}">
+                    {% with messages = get_flashed_messages(category_filter=["login_error"]) %}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-danger p-2 mb-3 rounded-3 small">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <div class="auth-input-group">
+                        <label for="login_id">Username or Email</label>
+                        <input type="text" id="login_id" name="login_id" class="auth-control" placeholder="Enter your username or email" required autocomplete="username">
+                    </div>
+                    <div class="auth-input-group">
+                        <label for="login_password">Password</label>
+                        <input type="password" id="login_password" name="password" class="auth-control" placeholder="••••••••" required autocomplete="current-password">
+                    </div>
+                    
+                    <button type="submit" class="btn-auth-submit mt-2">Sign In</button>
+                </form>
+                
+                <!-- Register Form -->
+                <form action="/register" method="post" id="registerForm" class="auth-form {% if active_tab != 'register' %}d-none{% endif %}">
+                    {% with messages = get_flashed_messages(category_filter=["register_error"]) %}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-danger p-2 mb-3 rounded-3 small">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <div class="auth-input-group">
+                        <label for="reg_username">Username</label>
+                        <input type="text" id="reg_username" name="username" class="auth-control" placeholder="e.g. green_thumb" required autocomplete="username">
+                    </div>
+                    <div class="auth-input-group">
+                        <label for="reg_email">Email Address</label>
+                        <input type="email" id="reg_email" name="email" class="auth-control" placeholder="yourname@domain.com" required autocomplete="email">
+                    </div>
+                    <div class="auth-input-group">
+                        <label for="reg_password">Password</label>
+                        <input type="password" id="reg_password" name="password" class="auth-control" placeholder="••••••••" required autocomplete="new-password">
+                    </div>
+                    
+                    <button type="submit" class="btn-auth-submit mt-2">Create Account</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function switchAuthTab(tab) {
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const loginTabBtn = document.getElementById('loginTabBtn');
+            const registerTabBtn = document.getElementById('registerTabBtn');
+            
+            if (tab === 'login') {
+                loginForm.classList.remove('d-none');
+                registerForm.classList.add('d-none');
+                loginTabBtn.classList.add('active');
+                registerTabBtn.classList.remove('active');
+            } else {
+                loginForm.classList.add('d-none');
+                registerForm.classList.remove('d-none');
+                loginTabBtn.classList.remove('active');
+                registerTabBtn.classList.add('active');
+            }
+        }
+    </script>
+    {% endif %}
+
+    {% if logged_in %}
+    <div class="hero-banner shadow-sm">
+        <div class="container">
+            <h1 class="fw-bold">Smart Leaf Diagnostics & Chat Hub</h1>
+            <p class="opacity-75">Scan live from your camera, review records, and consult the AI Doctor in one place.</p>
+        </div>
+    </div>
+
+    <div class="container my-4">
+        
+        {% if error_message %}
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm border-2 rounded-3 text-start mb-4" role="alert">
+            <strong>{{ error_message }}</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif %}
+
+        {% if active_scan %}
+        <div class="row g-4 mb-5">
+            <div class="col-12">
+                <div class="card feature-card p-4 bg-white border border-success">
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                        <h3 class="fw-bold text-success m-0">🔬 Active Scan Session Analysis</h3>
+                        <a href="/" class="btn btn-sm btn-outline-secondary">Clear Session</a>
+                    </div>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-4 text-center border-end">
+                            <img src="/{{ image_path }}" class="img-fluid rounded mb-2 shadow-sm" style="max-height: 180px; object-fit: cover;">
+                            <h4 class="fw-bold text-dark text-capitalize m-0">{{ disease | replace('_', ' ') }}</h4>
+                            <p class="text-success fw-semibold">Vision Diagnostic Match: {{ confidence }}%</p>
+                            
+                            <div class="text-start mt-3 p-2 bg-light rounded">
+                                <label for="langSelect" class="form-label small fw-bold text-secondary">🗣️ Response Language:</label>
+                                <select class="form-select form-select-sm" id="langSelect">
+                                    <option value="English" selected>English</option>
+                                    <option value="Telugu">తెలుగు (Telugu)</option>
+                                    <option value="Hindi">हिन्दी (Hindi)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-8">
+                            <div class="d-flex flex-column">
+                                <div class="chat-box d-flex flex-column border text-start" id="chatBox">
+                                    <div class="msg msg-bot">
+                                        Hello! I am Leafy, your AI Plant Doctor. The vision model detected <strong class="text-capitalize">{{ disease | replace('_', ' ') }}</strong> ({{ confidence }}%). Ask me how to treat it!
+                                    </div>
+                                </div>
+                                <div class="input-group mt-2">
+                                    <input type="text" id="userInput" class="form-control" placeholder="Ask about chemical options, organic treatments...">
+                                    <button class="btn btn-success fw-bold" onclick="sendMessage()">Assistant</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="actions-row border-top mt-3 pt-3">
+                        <a href="/" class="btn btn-sm btn-secondary">← Back to Main Dashboard</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if not active_scan %}
+        <div class="row g-4">
+            
+            <div class="col-md-5">
+                <div class="card feature-card p-4 bg-white">
+                    <h4 class="fw-bold text-success mb-3">📸 Diagnostic Leaf Scan</h4>
+                    <form action="/predict" method="post" enctype="multipart/form-data" id="scanForm">
+                        
+                        <div class="d-flex gap-2 mb-3">
+                            <button type="button" class="btn btn-outline-primary btn-sm w-50" onclick="startCamera()">📷 Use Camera</button>
+                        </div>
+
+                        <video id="cameraView" autoplay playsinline></video>
+                        <canvas id="canvasHidden" style="display:none;"></canvas>
+                        <img id="photoPreview" alt="Snapshot Preview">
+                        
+                        <div id="cameraActionsContainer" class="d-flex gap-2 my-2" style="display: none !important;">
+                            <button type="button" id="snapBtn" class="btn btn-primary btn-sm flex-grow-1" onclick="takeSnapshot()">Capture Leaf</button>
+                            <button type="button" id="cancelCamBtn" class="btn btn-outline-danger btn-sm" onclick="stopCameraAndReset()">❌ Cancel</button>
+                        </div>
+
+                        <div id="fileInputContainer" class="mb-3">
+                            <label class="form-label text-muted small">Select a plant foliage snapshot:</label>
+                            <input type="file" id="fileInput" name="file" class="form-control" accept="image/*">
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 py-2 fw-bold mt-2">Run Diagnosis & Open Chat</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-md-7">
+                <div class="card feature-card p-4 bg-white">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="fw-bold text-dark m-0">📋 Health Timeline History</h4>
+                        {% if scans %}
+                            <button class="btn btn-sm btn-outline-danger" onclick="clearAllHistory()">Wipe Records</button>
+                        {% endif %}
+                    </div>
+
+                    <div class="table-responsive" style="max-height: 320px; overflow-y: auto;">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>Image</th>
+                                    <th>Condition</th>
+                                    <th>Match %</th>
+                                    <th>Time</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for scan in scans %}
+                                <tr id="row-{{ scan.id }}">
+                                    <td>
+                                        <img src="/static/uploads/{{ scan.filename }}" class="rounded" style="width: 45px; height: 45px; object-fit: cover;" onerror="this.src='https://placehold.co/45?text=NA'">
+                                    </td>
+                                    <td><span class="badge bg-success-subtle text-success text-capitalize">{{ scan.diagnosis | replace('_', ' ') }}</span></td>
+                                    <td class="fw-semibold text-secondary">{{ scan.confidence }}%</td>
+                                    <td class="text-muted small">
+                                        {% if scan.timestamp %}
+                                            {{ scan.timestamp.strftime('%b %d - %I:%M %p') }}
+                                        {% else %}
+                                            --
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-link text-danger p-0" onclick="deleteRecord({{ scan.id }})">Delete</button>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted small">No scans registered yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+    {% endif %}
+
+    <script>
+        const contextDisease = "{{ disease }}";
+        let streamObject = null;
+
+        // 🎥 CAMERA CONTROLLERS
+        async function startCamera() {
+            document.getElementById('fileInputContainer').style.display = 'none';
+            document.getElementById('photoPreview').style.display = 'none';
+            const video = document.getElementById('cameraView');
+            const actionsContainer = document.getElementById('cameraActionsContainer');
+            const snapBtn = document.getElementById('snapBtn');
+            
+            try {
+                streamObject = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+                video.srcObject = streamObject;
+                video.style.display = 'block';
+                
+                // Switch button structure container active
+                actionsContainer.style.setProperty('display', 'flex', 'important');
+                snapBtn.style.display = 'block';
+            } catch (err) {
+                alert("Could not access camera device. Check your browser permissions.");
+                useFileMethod();
+            }
+        }
+
+        function takeSnapshot() {
+            const video = document.getElementById('cameraView');
+            const canvas = document.getElementById('canvasHidden');
+            const preview = document.getElementById('photoPreview');
+            const actionsContainer = document.getElementById('cameraActionsContainer');
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            preview.src = canvas.toDataURL('image/jpeg');
+            preview.style.display = 'block';
+            video.style.display = 'none';
+            actionsContainer.style.setProperty('display', 'none', 'important');
+
+            canvas.toBlob((blob) => {
+                const file = new File([blob], "live_camera_capture.jpg", { type: "image/jpeg" });
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                document.getElementById('fileInput').files = dataTransfer.files;
+            }, 'image/jpeg');
+
+            if (streamObject) {
+                streamObject.getTracks().forEach(track => track.stop());
+            }
+        }
+
+        function stopCameraAndReset() {
+            if (streamObject) {
+                streamObject.getTracks().forEach(track => track.stop());
+                streamObject = null;
+            }
+            useFileMethod();
+        }
+
+        function useFileMethod() {
+            if (streamObject) {
+                streamObject.getTracks().forEach(track => track.stop());
+            }
+            document.getElementById('cameraView').style.display = 'none';
+            document.getElementById('cameraActionsContainer').style.setProperty('display', 'none', 'important');
+            document.getElementById('photoPreview').style.display = 'none';
+            document.getElementById('fileInputContainer').style.display = 'block';
+            document.getElementById('fileInput').value = "";
+        }
+
+        // 💬 CONSULTATION HUB CONTROLLERS
+        async function sendMessage() {
+            const inputEl = document.getElementById('userInput');
+            const chatBox = document.getElementById('chatBox');
+            const langSelect = document.getElementById('langSelect');
+            
+            const text = inputEl.value.trim();
+            if(!text) return;
+
+            const userDiv = document.createElement('div');
+            userDiv.className = 'msg msg-user';
+            userDiv.innerText = text;
+            chatBox.appendChild(userDiv);
+            inputEl.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            const loadDiv = document.createElement('div');
+            loadDiv.className = 'msg msg-bot text-muted';
+            loadDiv.innerText = '✨ Leafy is formulating medical data...';
+            chatBox.appendChild(loadDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                const response = await fetch('/ask_doctor', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text, disease: contextDisease, language: langSelect.value })
+                });
+                const data = await response.json();
+                loadDiv.remove();
+
+                const botDiv = document.createElement('div');
+                botDiv.className = 'msg msg-bot';
+                botDiv.innerHTML = data.response.replace(/\n/g, '<br>');
+                chatBox.appendChild(botDiv);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            } catch (err) { loadDiv.remove(); console.error(err); }
+        }
+
+        // 🗑️ RECORD MANAGEMENT CONTROLLERS
+        async function deleteRecord(id) {
+            if (!confirm("Remove item from timeline history?")) return;
+            try {
+                const res = await fetch(`/delete/${id}`, { method: 'POST' });
+                const data = await res.json();
+                if(data.success) { 
+                    const targetRow = document.getElementById(`row-${id}`);
+                    if(targetRow) targetRow.remove(); 
+                    window.location.reload(); 
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        async function clearAllHistory() {
+            if (!confirm("Clear all database logs permanently?")) return;
+            try {
+                const res = await fetch('/clear_all', { method: 'POST' });
+                const data = await res.json();
+                if(data.success) { window.location.reload(); }
+            } catch(e) { console.error(e); }
+        }
+    </script>
+</body>
+</html>
