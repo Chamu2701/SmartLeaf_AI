@@ -1,4 +1,3 @@
-
 import os
 import random
 import smtplib
@@ -12,6 +11,7 @@ from groq import Groq
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
+
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'smartleafai_secret_key_987654321_botanical')
 
@@ -24,24 +24,31 @@ db = SQLAlchemy(app)
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Initialize Hugging Face Image Classifier with Local Cache Fallback Check
-print("Loading Hugging Face Vision Pipeline...")
-model_name = "nateraw/vit-base-beans"
+# Initialize variables as None so they don't consume memory at startup
+processor = None
+model = None
 
-try:
-    # Attempt a standard online initialization check
-    processor = AutoImageProcessor.from_pretrained(model_name)
-    model = AutoModelForImageClassification.from_pretrained(model_name)
-except Exception:
-    # Force isolated local file architecture pull if network getaddrinfo fails
-    print("WARNING: Network connection unavailable. Pulling localized configuration parameters from storage cache...")
-    processor = AutoImageProcessor.from_pretrained(model_name, local_files_only=True)
-    model = AutoModelForImageClassification.from_pretrained(model_name, local_files_only=True)
+def get_vision_pipeline():
+    """Loads the model into memory only when needed for a scan"""
+    global processor, model
+    if processor is None or model is None:
+        print("Loading Hugging Face Vision Pipeline...")
+        model_name = "nateraw/vit-base-beans"
+        try:
+            # Attempt a standard online initialization check
+            processor = AutoImageProcessor.from_pretrained(model_name)
+            model = AutoModelForImageClassification.from_pretrained(model_name)
+        except Exception:
+            # Force isolated local file architecture pull if network getaddrinfo fails
+            print("WARNING: Network connection unavailable. Pulling localized configuration parameters from storage cache...")
+            processor = AutoImageProcessor.from_pretrained(model_name, local_files_only=True)
+            model = AutoModelForImageClassification.from_pretrained(model_name, local_files_only=True)
+    
+    # Build the pipeline dynamically inside the function using the loaded models
+    return pipeline("image-classification", model=model, image_processor=processor)
 
-# Bind structural components into execution pipeline object
-classifier = pipeline("image-classification", model=model, image_processor=processor)
-
-# Initialize Groq Client
-groq_client = Groq(api_key="GROQ_API_KEY")
+# Initialize Groq Client pulling safely from Render Environment Variables
+groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 # Database Model for Users
 class User(db.Model):
@@ -71,14 +78,6 @@ with app.app_context():
         db.session.rollback()
 
 def send_otp_email(email, otp):
-    # smtp_server = os.environ.get('SMTP_SERVER')
-    # smtp_port = os.environ.get('SMTP_PORT', '587')
-    # smtp_username = os.environ.get('srirangamchamundeswari@gmail.com')
-    # smtp_password = os.environ.get('flny osff ybze rera')
-    # smtp_sender = os.environ.get('srirangamchamundeswari@gmail.com', smtp_username or 'no-reply@smartleafai.com')
-    
-    import os
-
     smtp_server = os.environ.get('SMTP_SERVER', 'smtp.gmail.com')
     smtp_port = os.environ.get('SMTP_PORT', '587')
 
@@ -228,7 +227,6 @@ def verify_otp():
     # Check active registration flow
     if 'pending_register' in session:
         data = session['pending_register']
-        # 5 minute expiration window
         if datetime.utcnow().timestamp() - data['created_at'] > 300:
             session.pop('pending_register', None)
             flash("The verification code has expired. Please register again.", "register_error")
@@ -335,16 +333,16 @@ def predict():
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(filepath)
         
-        # 🔬 Run the Vision Classifier FIRST so variables are defined
+        # 🔬 Load pipeline dynamically on-demand right here!
+        classifier_pipeline = get_vision_pipeline()
         image = Image.open(filepath)
-        predictions = classifier(image)
+        predictions = classifier_pipeline(image)
         top_pred = predictions[0]
         
         disease = top_pred['label']
         confidence = round(top_pred['score'] * 100, 2)
         
         # 🛡️ THE VALIDATION GUARDRAIL
-        # Now we check confidence safely. If lower than 55% (like human photos), reject it!
         SAFE_THRESHOLD = 55.0
         if confidence < SAFE_THRESHOLD:
             if os.path.exists(filepath):
@@ -437,6 +435,7 @@ def clear_all_history():
     except Exception as e:
         db.session.rollback()
         return jsonify({"success": False, "message": str(e)}), 500
+
 from waitress import serve
 
 if __name__ == "__main__":
